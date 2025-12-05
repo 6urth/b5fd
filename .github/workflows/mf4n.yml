@@ -60,7 +60,6 @@ jobs:
           if(-not $ip){ exit 1 }
           "TSIP=$ip" | Out-File $env:GITHUB_ENV -Append
 
-      # 🔥 تحميل Loka.zip
       - name: Download RDP File (loka.zip)
         shell: pwsh
         run: |
@@ -68,15 +67,23 @@ jobs:
           Invoke-WebRequest -Uri "https://github.com/tyjuoi78uk/FERT/releases/download/v1/loka.zip" -OutFile "C:\RDP-FILE\loka.zip"
           Expand-Archive "C:\RDP-FILE\loka.zip" -DestinationPath "C:\RDP-FILE" -Force
 
-      # ⭐ تشغيل zusHUB.exe عند تسجيل الدخول الحقيقي للـ RDP
-      - name: Auto run tool on RDP Login (REAL FIX)
+      # ✔️ إضافة فتح الفولدر تلقائيًا عند تسجيل الدخول عبر RDP
+      - name: Open Loka Folder On Login
         shell: pwsh
         run: |
-          $usr = "${{ env.USR }}"
-          $exePath = "C:\RDP-FILE\loka\zusHUB.exe"
-          $taskName = "Run_zusHUB_on_RDP_Login"
+          $startup = "$env:ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp"
+          $target = "C:\RDP-FILE\loka"
+          $shortcut = "$startup\open_loka.lnk"
 
-          $action = New-ScheduledTaskAction -Execute $exePath
-          $trigger = New-ScheduledTaskTrigger -AtLogOn -User $usr
+          $wsh = New-Object -ComObject WScript.Shell
+          $sc = $wsh.CreateShortcut($shortcut)
+          $sc.TargetPath = "explorer.exe"
+          $sc.Arguments = "`"$target`""
+          $sc.Save()
 
-          Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -User $usr -RunLevel Highest -Force
+      - name: Idle
+        shell: pwsh
+        run: |
+          while($true){
+            Start-Sleep -Seconds (Get-Random -Minimum 140 -Maximum 300)
+          }
