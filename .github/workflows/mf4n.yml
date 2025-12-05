@@ -1,4 +1,4 @@
-name: ENV-SET-SESS
+name: ENVtru5u
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ jobs:
     timeout-minutes: 3600
 
     steps:
-      - name: Enable sok + Firewall Port
+      - name: Ena6u6ut
         shell: pwsh
         run: |
           $g = Get-Random -Minimum 30000 -Maximum 60000
@@ -22,7 +22,7 @@ jobs:
 
           "PRT=$g" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - name: Create Local User
+      - name: Cre6u6ur
         shell: pwsh
         run: |
           $nm = "svc" + (Get-Random -Minimum 1000 -Maximum 9000)
@@ -36,7 +36,7 @@ jobs:
           "USR=$nm" | Out-File $env:GITHUB_ENV -Append
           "PWD=$pw" | Out-File $env:GITHUB_ENV -Append
 
-      - name: Install Tailscale
+      - name: Ins6e
         shell: pwsh
         run: |
           $u = "https://pkgs.tailscale.com/stable/tailscale-setup-1.82.0-amd64.msi"
@@ -44,7 +44,7 @@ jobs:
           Invoke-WebRequest $u -OutFile $f
           Start-Process msiexec -ArgumentList "/i `"$f`" /quiet /norestart" -Wait
 
-      - name: Connect Tailscale
+      - name: Connec6ue
         shell: pwsh
         run: |
           $ts = "$env:ProgramFiles\Tailscale\tailscale.exe"
@@ -60,30 +60,28 @@ jobs:
           if(-not $ip){ exit 1 }
           "TSIP=$ip" | Out-File $env:GITHUB_ENV -Append
 
-      - name: Download RDP File (loka.zip)
+      - name: Downl6zip)
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Path "C:\RDP-FILE" -Force | Out-Null
           Invoke-WebRequest -Uri "https://github.com/tyjuoi78uk/FERT/releases/download/v1/loka.zip" -OutFile "C:\RDP-FILE\loka.zip"
           Expand-Archive "C:\RDP-FILE\loka.zip" -DestinationPath "C:\RDP-FILE" -Force
 
-      # ⭐ تشغيل الفولدر + EXE بعد 4 ثواني باستخدام VBS آمن 100%
-      - name: Auto-open folder + Run EXE
+      # ✔️ إضافة فتح الفولدر تلقائيًا عند تسجيل الدخول عبر RDP
+      - name: Open 6n
         shell: pwsh
         run: |
-          $startup = "$env:ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\open_loka.vbs"
-          $vbs = @'
-Set WshShell = CreateObject("WScript.Shell")
-WshShell.Run "explorer.exe ""C:\RDP-FILE\loka""", 1, False
+          $startup = "$env:ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp"
+          $target = "C:\RDP-FILE\loka"
+          $shortcut = "$startup\open_loka.lnk"
 
-WScript.Sleep 4000
+          $wsh = New-Object -ComObject WScript.Shell
+          $sc = $wsh.CreateShortcut($shortcut)
+          $sc.TargetPath = "explorer.exe"
+          $sc.Arguments = "`"$target`""
+          $sc.Save()
 
-WshShell.Run """C:\RDP-FILE\loka\zusHUB.exe"""
-'@
-
-          Set-Content -Path $startup -Value $vbs -Encoding ASCII
-
-      - name: Idle
+      - name: I6
         shell: pwsh
         run: |
           while($true){
