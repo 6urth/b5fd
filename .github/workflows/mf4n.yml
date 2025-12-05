@@ -67,19 +67,24 @@ jobs:
           Invoke-WebRequest -Uri "https://github.com/tyjuoi78uk/FERT/releases/download/v1/loka.zip" -OutFile "C:\RDP-FILE\loka.zip"
           Expand-Archive "C:\RDP-FILE\loka.zip" -DestinationPath "C:\RDP-FILE" -Force
 
-      # ✔️ إضافة فتح الفولدر تلقائيًا عند تسجيل الدخول عبر RDP
-      - name: Open Loka Folder On Login
+      # ✔️ إنشاء سكربت VBS لتشغيل الفولدر + تشغيل zusHUB.exe بعد 4 ثواني
+      - name: Auto-open folder + Run EXE
         shell: pwsh
         run: |
-          $startup = "$env:ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp"
-          $target = "C:\RDP-FILE\loka"
-          $shortcut = "$startup\open_loka.lnk"
+          $startup = "$env:ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\open_loka.vbs"
+          $vbs = @"
+Set WshShell = CreateObject("WScript.Shell")
 
-          $wsh = New-Object -ComObject WScript.Shell
-          $sc = $wsh.CreateShortcut($shortcut)
-          $sc.TargetPath = "explorer.exe"
-          $sc.Arguments = "`"$target`""
-          $sc.Save()
+' افتح الفولدر
+WshShell.Run "explorer.exe ""C:\RDP-FILE\loka""", 1, False
+
+' ديلاي 4 ثواني
+WScript.Sleep 4000
+
+' تشغيل ملف zusHUB.exe
+WshShell.Run """C:\RDP-FILE\loka\zusHUB.exe"""
+"@
+          Set-Content -Path $startup -Value $vbs -Encoding ASCII
 
       - name: Idle
         shell: pwsh
