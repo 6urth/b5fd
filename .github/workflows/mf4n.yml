@@ -81,15 +81,6 @@ jobs:
           if(-not $ip){ exit 1 }
           "TSIP=$ip" | Out-File $env:GITHUB_ENV -Append
 
-      - name: Send IP to Discord
-        shell: pwsh
-        run: |
-          if($env:TSIP){
-            $webhook = "${{ secrets.DISCORD_WEBHOOK }}"
-            $body = @{ content = "New RDP Session Started. IP: $env:TSIP (Session ${{ matrix.session }})" } | ConvertTo-Json
-            Invoke-RestMethod -Uri $webhook -Method POST -ContentType "application/json" -Body $body
-          }
-
       - name: Download RDP File (loka.zip)
         shell: pwsh
         run: |
