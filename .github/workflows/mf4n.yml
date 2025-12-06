@@ -15,14 +15,20 @@ jobs:
     strategy:
       matrix:
         session: [1,2,3,4,5,6,7,8]
-        ip_rotator: [1]   # خطوة عشوائية داخل الـ Step تولد الرقم الحقيقي
 
     timeout-minutes: 3600
 
-    # 🔹 أغلق Job لو موجود ضمن الأرقام اللي حددتها
-    if: ${{ !contains(inputs.DISABLED_JOBS, format('{0}', matrix.session)) }}
-
     steps:
+
+      # 🔹 Step لتقليل Job المعطل
+      - name: Skip Disabled Job
+        shell: pwsh
+        run: |
+          $disabled = "${{ inputs.DISABLED_JOBS }}"
+          if($disabled -and ($disabled -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -eq "${{ matrix.session }}" })){
+            Write-Host "Session $(${{ matrix.session }}) is disabled. Skipping..."
+            exit 0
+          }
 
       - name: Force New VM (New IP)
         shell: pwsh
