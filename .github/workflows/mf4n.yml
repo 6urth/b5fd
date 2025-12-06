@@ -2,16 +2,33 @@ name: ENV-SET-SESS
 
 on:
   workflow_dispatch:
+    inputs:
+      DISABLED_JOBS:
+        description: "Comma separated job numbers to disable (مثال: 3,5)"
+        required: false
+        default: ""
 
 jobs:
   rdpjob:
     runs-on: windows-latest
+
     strategy:
       matrix:
         session: [1,2,3,4,5,6,7,8]
+        # 🔥 Auto IP Rotator — يجبر GitHub على إنشاء VM جديدة = IP جديد
+        ip_rotator: [ ${{ github.run_id }} ]
+
     timeout-minutes: 3600
 
+    # 👇 اغلق الجوب لو هو ضمن الأرقام اللي كتبناها
+    if: ${{ !contains(inputs.DISABLED_JOBS, matrix.session ) }}
+
     steps:
+
+      - name: Force New VM (New IP)
+        shell: pwsh
+        run: echo "ROTATE=${{ matrix.ip_rotator }}"
+
       - name: Enable RDP + Firewall Port
         shell: pwsh
         run: |
@@ -77,29 +94,23 @@ jobs:
           $sc.Arguments = "`"$target`""
           $sc.Save()
 
-      ##############################################################
-      # 1) Disable First‑Run / Welcome / Sign‑in in Chrome & Edge
-      ##############################################################
-      - name: Disable Chrome/Edge Welcome Screens
+      - name: Disable Welcome Screens (Chrome/Edge)
         shell: pwsh
         run: |
-          # Chrome policies
+          # Chrome
           $chrome = "HKLM:\SOFTWARE\Policies\Google\Chrome"
           New-Item -Path $chrome -Force | Out-Null
           Set-ItemProperty -Path $chrome -Name "BrowserSignin" -Value 0 -Type DWord
           Set-ItemProperty -Path $chrome -Name "SyncDisabled" -Value 1 -Type DWord
           Set-ItemProperty -Path $chrome -Name "HideFirstRun" -Value 1 -Type DWord
 
-          # Edge policies
+          # Edge
           $edge = "HKLM:\SOFTWARE\Policies\Microsoft\Edge"
           New-Item -Path $edge -Force | Out-Null
           Set-ItemProperty -Path $edge -Name "HideFirstRunExperience" -Value 1 -Type DWord
           Set-ItemProperty -Path $edge -Name "BrowserSignin" -Value 0 -Type DWord
           Set-ItemProperty -Path $edge -Name "SyncDisabled" -Value 1 -Type DWord
 
-      ##############################################################
-      # 2) Add Chrome small fixed window Shortcut (top-left)
-      ##############################################################
       - name: Create Chrome Small Window Shortcut
         shell: pwsh
         run: |
