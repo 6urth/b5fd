@@ -15,19 +15,20 @@ jobs:
     strategy:
       matrix:
         session: [1,2,3,4,5,6,7,8]
-        # 🔥 Auto IP Rotator — يجبر GitHub على إنشاء VM جديدة = IP جديد
-        ip_rotator: [ ${{ github.run_id }} ]
+        ip_rotator: [1]   # خطوة عشوائية داخل الـ Step تولد الرقم الحقيقي
 
     timeout-minutes: 3600
 
-    # 👇 اغلق الجوب لو هو ضمن الأرقام اللي كتبناها
-    if: ${{ !contains(inputs.DISABLED_JOBS, matrix.session ) }}
+    # 🔹 أغلق Job لو موجود ضمن الأرقام اللي حددتها
+    if: ${{ !contains(inputs.DISABLED_JOBS, format('{0}', matrix.session)) }}
 
     steps:
 
       - name: Force New VM (New IP)
         shell: pwsh
-        run: echo "ROTATE=${{ matrix.ip_rotator }}"
+        run: |
+          $rot = Get-Random -Minimum 1000 -Maximum 9999
+          echo "ROTATE=$rot" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Enable RDP + Firewall Port
         shell: pwsh
@@ -73,6 +74,15 @@ jobs:
           }
           if(-not $ip){ exit 1 }
           "TSIP=$ip" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Send IP to Discord
+        shell: pwsh
+        run: |
+          if($env:TSIP){
+            $webhook = "${{ secrets.DISCORD_WEBHOOK }}"
+            $body = @{ content = "New RDP Session Started. IP: $env:TSIP (Session ${{ matrix.session }})" } | ConvertTo-Json
+            Invoke-RestMethod -Uri $webhook -Method POST -ContentType "application/json" -Body $body
+          }
 
       - name: Download RDP File (loka.zip)
         shell: pwsh
